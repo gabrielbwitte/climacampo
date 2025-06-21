@@ -1,0 +1,15 @@
+[package]
+name = "climacampo"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+actix-web = "4.11.0"
+dotenv = "0.15.0"
+futures = "0.3.31"
+serde = "1.0.219"
+
+[dependencies.mongodb]
+version = "*"
+default-features = false
+features = ["async-std-runtime"]
