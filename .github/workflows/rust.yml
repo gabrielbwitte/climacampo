@@ -10,21 +10,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build
-      run: cargo build --verbose
-    - name: Run tests
-      run: cargo test --verbose
-
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Deploy para hostinger
-      uses: easingthemes/ssh-deploy@main
-      env: 
-        SSH_PRIVATE_KEY: ${{ secrets.KEY_SSH }}
-        ARGS: "-rlgoDzvc -i --delete"
-        SOURCE: ""
-        REMOTE_HOST: ${{ secrets.HOST }}
-        REMOTE_USER: ${{ secrets.USERNAME }}
-        REMOTE_PORT: ${{ secrets.PORT }}
-        TARGET: system
+    - name: Copy file via SSH password
+      uses: appleboy/scp-action@v1
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.PASSWORD }}
+        password: ${{ secrets.PASSWORD }}
+        port: 22
+        source: "."
+        target: system
