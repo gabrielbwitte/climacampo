@@ -3,11 +3,6 @@ name: Rust
 on:
   push:
     branches: ["main"]
-  pull-request:
-    branches: ["*"]
-
-env:
-  CARGO_TERM_COLOR: always
 
 jobs:
   build:
