@@ -19,4 +19,16 @@ jobs:
         port: 22
         key: ${{ secrets.KEY_SSH }}
         source: "."
-        target: system
+        target: "/system"
+
+    - name: "Buid da aplicação"
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        password: ${{ secrets.PASSWORD }}
+        port: 22
+        key: ${{ secrets.KEY_SSH }}
+        script: |
+          cd /system
+          cargo build
