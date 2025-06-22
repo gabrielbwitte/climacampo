@@ -16,12 +16,15 @@ jobs:
     - name: Run tests
       run: cargo test --verbose
 
-    - uses: actions/checkout@v4
-    - name: Copy files via SSH
-      uses: appleboy/scp-action@v1
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.KEY_SSH }}
-        source: "."
-        target: "/system"
+    - name: Checkout
+      uses: actions/checkout@v1
+    - name: Deploy para hostinger
+      uses: easingthemes/ssh-deploy@main
+      env: 
+        SSH_PRIVATE_KEY: ${{ secrets.KEY_SSH }}
+        ARGS: "-rlgoDzvc -i --delete"
+        SOURCE: ""
+        REMOTE_HOST: ${{ secrets.HOST }}
+        REMOTE_USER: ${{ secrets.USERNAME }}
+        REMOTE_PORT: ${{ secrets.PORT }}
+        TARGET: system
