@@ -1,0 +1,21 @@
+name: Rust
+
+on:
+  push:
+    branches: ["main"]
+  pull-request:
+    branches: ["*"]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: install dependencies
+      run: sudo apt update; sudo apt install --no-install-recomends libasound2-dev libudev-dev libwayland-dev libxkbcommon-dev
+    - name: cargo build
+      run: cargo build --release --verbose   
