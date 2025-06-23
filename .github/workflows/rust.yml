@@ -18,7 +18,7 @@ jobs:
 
   build:
     needs: send
-    name: Execut commands
+    name: build
     runs-on: ubuntu-latest
     steps:
       - name: Execute remote SSH commands
@@ -29,8 +29,21 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            rm -rf app
             cd app
             /root/.cargo/bin/cargo build
-            cd target/debug
-            sudo mv climacampo /usr/local/climacampo
+
+  install:
+    needs: build
+    name: install
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute remote SSH commands
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd app/target/debug
+            sudo mv climacampo /usr/local/bin
