@@ -1,7 +1,8 @@
-name: scp files
+name: Deploy
 on: [push]
 jobs:
-  build:
+  send:
+    name: send files server
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -14,3 +15,18 @@ jobs:
           port: ${{ secrets.PORT }}
           source: "*"
           target: app
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute remote SSH commands
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd app
+            cargo build
