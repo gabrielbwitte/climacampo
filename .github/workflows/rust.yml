@@ -29,6 +29,8 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
+            rm -rf app
             cd app
             /root/.cargo/bin/cargo build
-            sudo mv target/debug/climacampo /usr/local/climacampo
+            cd target/debug
+            sudo mv climacampo /usr/local/climacampo
