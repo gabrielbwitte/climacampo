@@ -18,7 +18,7 @@ jobs:
 
   build:
     needs: send
-    name: Build
+    name: Execut commands
     runs-on: ubuntu-latest
     steps:
       - name: Execute remote SSH commands
@@ -30,4 +30,5 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd app
-            /root/.cargo/bin/cargo build --release
+            /root/.cargo/bin/cargo build
+            sudo mv target/release/climacampo /usr/local/climacampo
