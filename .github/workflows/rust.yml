@@ -31,4 +31,4 @@ jobs:
           script: |
             cd app
             /root/.cargo/bin/cargo build
-            sudo mv target/release/climacampo /usr/local/climacampo
+            sudo mv target/debug/climacampo /usr/local/climacampo
