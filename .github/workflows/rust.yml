@@ -30,4 +30,4 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd app
-            cargo build --release
+            ls -la
