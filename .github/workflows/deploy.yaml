@@ -1,5 +1,8 @@
 name: Deploy
-on: [push]
+on:
+  push:
+    branches: [main]
+
 jobs:
   send:
     name: send files server
@@ -47,3 +50,4 @@ jobs:
           script: |
             cd app/target/debug
             sudo mv climacampo /usr/local/bin
+            sudo systemctl restart climacampo
