@@ -49,5 +49,5 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd app/target/debug
-            sudo mv climacampo /usr/local/bin
+            sudo mv climacampo /usr/local/bin/
             sudo systemctl restart climacampo
