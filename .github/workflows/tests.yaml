@@ -1,6 +1,6 @@
 name: Test
 
-on: [push]
+on: [pull_request]
 
 jobs:
     test_build:
@@ -9,6 +9,6 @@ jobs:
         steps:
         - uses: actions/checkout@v4
         - name: build
-          run: cargo build --release --verbose
+          run: cargo build
 
         
