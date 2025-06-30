@@ -1,4 +1,4 @@
-use crate::{models::model_user::User, database::mongodb_data::MongoData};
+use crate::{models::model_user::User, models::model_user::ServiceData};
 use actix_web::{
     get,
     post,
@@ -10,7 +10,7 @@ use actix_web::{
 use mongodb::bson::oid::ObjectId;
 
 #[post("/user")]
-pub async fn create_user(db: Data<MongoData>, new_user: Json<User>) -> HttpResponse {
+pub async fn create_user(db: Data<ServiceData>, new_user: Json<User>) -> HttpResponse {
     let data = User {
         id: None,
         name: new_user.name.to_owned(),
@@ -25,7 +25,7 @@ pub async fn create_user(db: Data<MongoData>, new_user: Json<User>) -> HttpRespo
 }
 
 #[get("/user/{id}")]
-pub async fn get_user(db: Data<MongoData>, path: Path<String>) -> HttpResponse {
+pub async fn get_user(db: Data<ServiceData>, path: Path<String>) -> HttpResponse {
     let id = path.into_inner();
     if id.is_empty() {
         return HttpResponse::BadRequest().body("invalid ID");
@@ -38,7 +38,7 @@ pub async fn get_user(db: Data<MongoData>, path: Path<String>) -> HttpResponse {
 }
 
 #[put("/user/{id}")]
-pub async fn update_user(db: Data<MongoData>, path: Path<String>, new_user: Json<User>) -> HttpResponse {
+pub async fn update_user(db: Data<ServiceData>, path: Path<String>, new_user: Json<User>) -> HttpResponse {
     let id = path.into_inner();
     if id.is_empty() {
         return HttpResponse::BadRequest().body("invalid ID");
@@ -67,7 +67,7 @@ pub async fn update_user(db: Data<MongoData>, path: Path<String>, new_user: Json
 }
 
 #[delete("/user/{id}")]
-pub async fn delete_user(db: Data<MongoData>, path: Path<String>) -> HttpResponse {
+pub async fn delete_user(db: Data<ServiceData>, path: Path<String>) -> HttpResponse {
     let id = path.into_inner();
     if id.is_empty() {
         return HttpResponse::BadRequest().body("invalid ID");
@@ -86,7 +86,7 @@ pub async fn delete_user(db: Data<MongoData>, path: Path<String>) -> HttpRespons
 }
 
 #[get("/users")]
-pub async fn get_all_users(db: Data<MongoData>) -> HttpResponse {
+pub async fn get_all_users(db: Data<ServiceData>) -> HttpResponse {
     let users = db.get_all_users().await;
     match users {
         Ok(users) => HttpResponse::Ok().json(users),

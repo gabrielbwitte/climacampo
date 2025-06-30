@@ -33,7 +33,7 @@ jobs:
           port: ${{ secrets.PORT }}
           script: |
             cd app
-            /root/.cargo/bin/cargo build
+            /root/.cargo/bin/cargo build --release
 
   install:
     needs: build
