@@ -11,8 +11,9 @@ impl ServiceData {
         let new_doc = User {
             id: new_user.id,
             name: new_user.name,
-            location: new_user.location,
-            title: new_user.title,
+            email: new_user.email,
+            password: new_user.password,
+            level_access: new_user.level_access
         };
         let user = self
             .user_col
@@ -46,8 +47,9 @@ impl ServiceData {
                 {
                     "id": new_user.id,
                     "name": new_user.name,
-                    "location": new_user.location,
-                    "title": new_user.title
+                    "email": new_user.email,
+                    "password": new_user.password,
+                    "level_access": new_user.level_access
                 },
         };
         let update_doc = self
