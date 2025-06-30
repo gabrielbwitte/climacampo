@@ -48,6 +48,6 @@ jobs:
           password: ${{ secrets.PASSWORD }}
           port: ${{ secrets.PORT }}
           script: |
-            cd app/target/debug
+            cd app/target/release
             sudo mv climacampo /usr/local/bin/
             sudo systemctl restart climacampo
