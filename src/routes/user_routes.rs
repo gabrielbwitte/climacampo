@@ -59,6 +59,19 @@ pub async fn get_user(hed: HttpRequest) -> HttpResponse {
 
 #[post("/user")]
 pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
+
+    fn not_empty(data: &Json<User>) -> bool {
+        data.name.is_empty() 
+            || data.username.is_empty() 
+            || data.email.is_empty() 
+            || data.password.is_empty() 
+            || data.access.is_empty()
+    }
+
+    if not_empty(&req) {
+        return HttpResponse::BadRequest().body("Campos incoretos");
+    }
+
     let session = authorization(hed).await;
 
     let token = match session {

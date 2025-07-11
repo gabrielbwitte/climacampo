@@ -11,8 +11,8 @@ use uuid::Uuid;
 use crate::database::mongo_db::session;
 use crate::models::user_model::{User, Session};
 
-//const EXPIRATION_IN_MILLISECONDS: i64 = 2592000000;
-const EXPIRATION_IN_MILLISECONDS: i64 = 60000;
+const EXPIRATION_IN_MILLISECONDS: i64 = 1296000000;
+//const EXPIRATION_IN_MILLISECONDS: i64 = 60000;
 
 pub async fn created_hash(password: String) -> Result<String, StatusCode> {
     let hashded = hash(password, 12);
