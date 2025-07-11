@@ -6,6 +6,7 @@ use mongodb::bson::doc;
 use crate::database::mongo_db::user_col;
 use crate::models::user_model::{Login, User};
 use crate::service::session::{created_hash, authentication, authorization};
+use crate::database::error_db::{erro_db};
 
 
 #[post("/login")]
@@ -13,7 +14,10 @@ pub async fn login(req: Json<Login>) -> HttpResponse {
     
     let doc = doc! {"username": &req.username};
 
-    let res_db = user_col().await;
+    let res_db = match user_col().await {
+        Ok(v) => v,
+        Err(s) => return HttpResponse::new(s)
+    };
     let res = res_db.find_one(doc).await;
 
     match res {
@@ -38,7 +42,10 @@ pub async fn get_user(hed: HttpRequest) -> HttpResponse {
         Err(s) => return HttpResponse::new(s)
     };
 
-    let res_db = user_col().await;
+    let res_db = match user_col().await {
+        Ok(v) => v,
+        Err(s) => return HttpResponse::new(s)
+    };
     
     let mut cursor = res_db
     .find(doc! {})
@@ -94,7 +101,11 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
         access: req.access.to_owned(),
     };
 
-    let res_db = user_col().await;
+    let res_db = match user_col().await {
+        Ok(v) => v,
+        Err(s) => return HttpResponse::new(s)
+    };
+       
 
     let res = res_db.insert_one(data).await;
 
@@ -104,7 +115,13 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
                 .append_header((SET_COOKIE, format!("token={}; HttpOnly; Path=/;", token)))
                 .json(v)
         },
-        Err(e) => HttpResponse::InternalServerError().body(e.to_string())
+        Err(e) => {
+            let erro = erro_db(e.clone());
+            HttpResponse::build(erro.0)
+                .append_header((SET_COOKIE, format!("token={}; HttpOnly; Path=/;", token)))
+                .json(erro.1)
+
+        }
     }
    
 }

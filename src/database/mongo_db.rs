@@ -1,6 +1,9 @@
 extern crate dotenv;
+use actix_web::http::StatusCode;
 use dotenv::dotenv;
-use mongodb::{Client, Collection, Database};
+use mongodb::options::IndexOptions;
+use mongodb::{Client, Collection, Database, IndexModel};
+use mongodb::bson::doc;
 use std::env;
 
 use crate::models::user_model::{Session, User};
@@ -20,10 +23,29 @@ async fn db_connection() -> Database {
     db
 }
 
-pub async fn user_col() -> Collection<User> {
+pub async fn user_col() -> Result<Collection<User>, StatusCode> {
     let db = db_connection().await;
     let user_col: Collection<User> = db.collection("User");
-    user_col
+
+    let options = IndexOptions::builder().unique(true).build();
+
+    let indexes = vec![
+        IndexModel::builder()
+        .keys(doc! {"username": 1})
+        .options(options.clone())
+        .build(),
+        IndexModel::builder()
+        .keys(doc! {"email": 1})
+        .options(options)
+        .build(),
+    ];
+    
+
+    match user_col.create_indexes(indexes).await {
+        Ok(_) => Ok(user_col),
+        Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR)
+    } 
+    
 }
 
 pub async fn session() -> Collection<Session> {
