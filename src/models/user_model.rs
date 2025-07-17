@@ -28,3 +28,9 @@ pub struct Session {
     pub token: String,
     pub start_date: i64
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ObjJsonResponse<T> {
+    pub data: T,
+    pub token: String
+}
