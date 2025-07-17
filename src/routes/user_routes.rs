@@ -1,17 +1,15 @@
-use actix_web::http::header::SET_COOKIE;
 use actix_web::HttpRequest;
 use actix_web::{get, post, web::Json, HttpResponse};
 use futures::TryStreamExt;
 use mongodb::bson::doc;
 use crate::database::mongo_db::user_col;
-use crate::models::user_model::{Login, User};
+use crate::models::user_model::{Login, User, ObjJsonResponse};
 use crate::service::session::{created_hash, authentication, authorization};
 use crate::database::error_db::{erro_db};
 
 
 #[post("/login")]
 pub async fn login(req: Json<Login>) -> HttpResponse {
-    
     let doc = doc! {"username": &req.username};
 
     let res_db = match user_col().await {
@@ -24,7 +22,13 @@ pub async fn login(req: Json<Login>) -> HttpResponse {
         Ok(v) => {
             let result = authentication(req.password.clone(), v).await;
             match result {
-                Ok(v) => HttpResponse::Ok().append_header((SET_COOKIE, format!("token={}; HttpOnly; Path=/;", v))).json(""),
+                Ok(v) => {
+                    let obj = ObjJsonResponse {
+                        data: "".to_string(),
+                        token: v
+                    };
+                        HttpResponse::Ok().json(obj)
+                },
                 Err(s) => HttpResponse::new(s),
             }
         }
@@ -34,7 +38,6 @@ pub async fn login(req: Json<Login>) -> HttpResponse {
 
 #[get("/users")]
 pub async fn get_user(hed: HttpRequest) -> HttpResponse {
-    
     let session = authorization(hed).await;
 
     let token = match session {
@@ -59,14 +62,16 @@ pub async fn get_user(hed: HttpRequest) -> HttpResponse {
         users.push(doc);
     }
 
+    let obj = ObjJsonResponse {
+        data: users,
+        token: token
+    };
     HttpResponse::Ok()
-        .append_header((SET_COOKIE, format!("token={}; HttpOnly; Path=/;", token)))
-        .json(users)
+        .json(obj)
 }
 
 #[post("/user")]
 pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
-
     fn not_empty(data: &Json<User>) -> bool {
         data.name.is_empty() 
             || data.username.is_empty() 
@@ -106,20 +111,25 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
         Err(s) => return HttpResponse::new(s)
     };
        
-
     let res = res_db.insert_one(data).await;
 
     match res {
-        Ok(v) => {
+        Ok(r) => {
+            let obj = ObjJsonResponse {
+                data: r,
+                token: token
+            };
             HttpResponse::Ok()
-                .append_header((SET_COOKIE, format!("token={}; HttpOnly; Path=/;", token)))
-                .json(v)
+                .json(obj)
         },
         Err(e) => {
             let erro = erro_db(e.clone());
+            let obj = ObjJsonResponse {
+                data: erro.1,
+                token: token
+            };
             HttpResponse::build(erro.0)
-                .append_header((SET_COOKIE, format!("token={}; HttpOnly; Path=/;", token)))
-                .json(erro.1)
+                .json(obj)
 
         }
     }
