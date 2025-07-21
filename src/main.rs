@@ -9,8 +9,9 @@ mod service;
 mod routes;
 mod models;
 use routes::user_routes::{
-    created_user,
     login,
+    logoff,
+    created_user,
     get_user
 };
 
@@ -28,6 +29,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
             .service(login)
+            .service(logoff)
             .service(created_user)
             .service(get_user)
     })

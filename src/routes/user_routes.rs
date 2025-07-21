@@ -1,8 +1,8 @@
 use actix_web::HttpRequest;
-use actix_web::{get, post, web::Json, HttpResponse};
+use actix_web::{get, post, delete,web::Json, HttpResponse};
 use futures::TryStreamExt;
 use mongodb::bson::doc;
-use crate::database::mongo_db::user_col;
+use crate::database::mongo_db::{session, user_col};
 use crate::models::user_model::{Login, User, ObjJsonResponse};
 use crate::service::session::{created_hash, authentication, authorization};
 use crate::database::error_db::{erro_db};
@@ -34,6 +34,31 @@ pub async fn login(req: Json<Login>) -> HttpResponse {
         }
         Err(_) => HttpResponse::InternalServerError().body("Error interno")
     }
+}
+
+#[delete("/logoff")]
+pub async fn logoff(hed: HttpRequest) -> HttpResponse {
+
+    let get_token = hed.headers().get("token");
+    let result_token = match get_token {
+        Some(v) => v.to_str(),
+        None =>  return HttpResponse::BadRequest().body("Token não encontrado")
+    };
+    let token = match result_token {
+        Ok(v) => v.to_string(),
+        Err(_) => return HttpResponse::BadRequest().body("Conteudo mal formatado")
+    };
+
+    let doc = doc! { "token": token };
+
+    let res_db = session().await;
+    let res = res_db.delete_one(doc).await;
+
+    match res {
+        Ok(v) => HttpResponse::Accepted().json(v),
+        Err(_) => HttpResponse::InternalServerError().body("Error interno")
+    }
+
 }
 
 #[get("/users")]
