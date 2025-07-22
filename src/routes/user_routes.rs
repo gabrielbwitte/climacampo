@@ -1,3 +1,4 @@
+use actix_web::cookie::Cookie;
 use actix_web::HttpRequest;
 use actix_web::{get, post, delete,web::Json, HttpResponse};
 use futures::TryStreamExt;
@@ -18,16 +19,18 @@ pub async fn login(req: Json<Login>) -> HttpResponse {
     };
     let res = res_db.find_one(doc).await;
 
+    
+
     match res {
         Ok(v) => {
             let result = authentication(req.password.clone(), v).await;
             match result {
                 Ok(v) => {
-                    let obj = ObjJsonResponse {
-                        data: "".to_string(),
-                        token: v
-                    };
-                        HttpResponse::Ok().json(obj)
+                    let cookie = Cookie::build("token", v)
+                        .finish();
+                        HttpResponse::Ok()
+                            .cookie(cookie)
+                            .finish()
                 },
                 Err(s) => HttpResponse::new(s),
             }
