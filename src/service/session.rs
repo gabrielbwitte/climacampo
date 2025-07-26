@@ -108,7 +108,6 @@ async fn renew_session(doc_session: Session) -> Result<String, StatusCode> {
 }
 
 pub async fn authorization(headers: HttpRequest) -> Result<String, StatusCode> {
-
     let get_token = headers.headers().get("token");
     let result_token = match get_token {
         Some(v) => v.to_str(),

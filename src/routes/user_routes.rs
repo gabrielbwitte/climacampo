@@ -4,7 +4,7 @@ use actix_web::{get, post, delete,web::Json, HttpResponse};
 use futures::TryStreamExt;
 use mongodb::bson::doc;
 use crate::database::mongo_db::{session, user_col};
-use crate::models::user_model::{Login, User, ObjJsonResponse};
+use crate::models::user_model::{Access, Login, User};
 use crate::service::session::{created_hash, authentication, authorization};
 use crate::database::error_db::{erro_db};
 
@@ -18,8 +18,6 @@ pub async fn login(req: Json<Login>) -> HttpResponse {
         Err(s) => return HttpResponse::new(s)
     };
     let res = res_db.find_one(doc).await;
-
-    
 
     match res {
         Ok(v) => {
@@ -90,12 +88,10 @@ pub async fn get_user(hed: HttpRequest) -> HttpResponse {
         users.push(doc);
     }
 
-    let obj = ObjJsonResponse {
-        data: users,
-        token: token
-    };
+    let cookie = Cookie::build("token", token).finish();
     HttpResponse::Ok()
-        .json(obj)
+        .cookie(cookie)
+        .json(users)
 }
 
 #[post("/user")]
@@ -104,8 +100,7 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
         data.name.is_empty() 
             || data.username.is_empty() 
             || data.email.is_empty() 
-            || data.password.is_empty() 
-            || data.access.is_empty()
+            || data.password.is_empty()
     }
 
     if not_empty(&req) {
@@ -131,7 +126,10 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
         username: req.username.to_owned(),
         email: req.email.to_owned(),
         password: password_hash,
-        access: req.access.to_owned(),
+        access: Access {
+            c_d_user: req.access.c_d_user,
+            get_users: req.access.get_users
+        }
     };
 
     let res_db = match user_col().await {
@@ -143,23 +141,17 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
 
     match res {
         Ok(r) => {
-            let obj = ObjJsonResponse {
-                data: r,
-                token: token
-            };
+            let cookie = Cookie::build("token", token).finish();
             HttpResponse::Ok()
-                .json(obj)
-        },
+                .cookie(cookie)
+                .json(r)
+                },
         Err(e) => {
             let erro = erro_db(e.clone());
-            let obj = ObjJsonResponse {
-                data: erro.1,
-                token: token
-            };
+            let cookie = Cookie::build("token", token).finish();
             HttpResponse::build(erro.0)
-                .json(obj)
-
+                .cookie(cookie)
+                .json(erro.1)
         }
     }
-   
 }
