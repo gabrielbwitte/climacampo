@@ -9,7 +9,13 @@ pub struct User {
     pub username: String,
     pub email: String,
     pub password: String,
-    pub access: String,
+    pub access: Access,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Access {
+    pub c_d_user: bool,
+    pub get_users: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -25,10 +31,4 @@ pub struct Session {
     pub user_id: ObjectId,
     pub token: String,
     pub start_date: i64
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ObjJsonResponse<T> {
-    pub data: T,
-    pub token: String
 }

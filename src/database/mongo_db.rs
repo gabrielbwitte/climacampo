@@ -40,7 +40,6 @@ pub async fn user_col() -> Result<Collection<User>, StatusCode> {
         .build(),
     ];
     
-
     match user_col.create_indexes(indexes).await {
         Ok(_) => Ok(user_col),
         Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR)
