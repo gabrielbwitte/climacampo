@@ -4,6 +4,7 @@ use actix_web::http::StatusCode;
 use actix_web::HttpRequest;
 use bcrypt::{hash, verify};
 use chrono::Utc;
+use mongodb::bson::oid::ObjectId;
 use mongodb::bson::{doc};
 
 use uuid::Uuid;
@@ -57,7 +58,7 @@ async fn created_session(doc_session: Session) -> Result<String, StatusCode> {
     }
 }
 
-pub async fn authentication(password: String, user_db: Option<User>) -> Result<String, StatusCode> {
+pub async fn authentication(password: String, user_db: Option<User>) -> Result<(String, ObjectId), StatusCode> {
     let result = match user_db {
         Some(v) => v,
         None => return Err(StatusCode::UNAUTHORIZED)
@@ -92,7 +93,10 @@ pub async fn authentication(password: String, user_db: Option<User>) -> Result<S
                         mapa: result.access.mapa
                     }
                 };
-                created_session(doc).await
+                match created_session(doc).await {
+                    Ok(v) => Ok((v, user_id)),
+                    Err(e) => Err(e)
+                }
             } else {
                 Err(StatusCode::UNAUTHORIZED)
             }
