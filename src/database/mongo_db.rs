@@ -18,9 +18,7 @@ async fn db_connection() -> Database {
     };
 
     let client = Client::with_uri_str(uri).await.unwrap();
-    let db= client.database("climacampoDB");
-
-    db
+    client.database("climacampoDB")
 }
 
 pub async fn user_col() -> Result<Collection<User>, StatusCode> {
