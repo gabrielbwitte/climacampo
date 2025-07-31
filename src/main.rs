@@ -11,6 +11,7 @@ mod models;
 use routes::user_routes::{
     login,
     logoff,
+    get_user_profile,
     created_user,
     get_user,
     update_access_user,
@@ -32,6 +33,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(login)
             .service(logoff)
+            .service(get_user_profile)
             .service(created_user)
             .service(get_user)
             .service(update_access_user)

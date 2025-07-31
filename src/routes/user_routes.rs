@@ -23,14 +23,14 @@ pub async fn login(req: Json<Login>) -> HttpResponse {
                 let result = authentication(req.password.clone(), v_user).await;
                 match result {
                     Ok(v) => {
-                        let cookie = Cookie::build("token", v)
+                        let cookie = Cookie::build("token", v.0)
                         .path("/")
                         .secure(false)
                         .http_only(false)
                         .finish();
                     HttpResponse::Ok()
                     .cookie(cookie)
-                    .finish()
+                    .json(v.1)
                 },
                 Err(s) => HttpResponse::new(s),
                 }  
@@ -66,6 +66,58 @@ pub async fn logoff(hed: HttpRequest) -> HttpResponse {
     }
 }
 
+#[get("/user/profile/{id}")]
+pub async fn get_user_profile(hed: HttpRequest, id: web::Path<String>) -> HttpResponse {
+
+    let session = authorization(hed).await;
+
+    let results = match session {
+        Ok(t) => t,
+        Err(s) => {
+            return HttpResponse::new(s)
+        }
+    };
+
+    let cookie = Cookie::build("token", results.0)
+        .path("/")
+        .secure(false)
+        .http_only(true)
+        .finish();
+
+    let res_db = match user_col().await {
+        Ok(v) => v,
+        Err(s) => return HttpResponse::new(s)
+    };
+    
+    if let Some(v) = results.1.get_users {
+        if !v {
+            return HttpResponse::MethodNotAllowed().cookie(cookie).body("Não permitido")
+        }
+    }
+
+    let projection = doc! {
+        "username": false,
+        "password": false
+    };
+
+    let obj_id =  match ObjectId::parse_str(id.into_inner()) {
+        Ok(v) => v,
+        Err(_) => return HttpResponse::BadRequest().cookie(cookie).body("")
+    };
+    
+    let filter = doc! { "_id":  obj_id};
+
+    let res = res_db
+    .find_one(filter)
+    .projection(projection)
+    .await
+    .expect("Error");
+
+    HttpResponse::Ok()
+        .cookie(cookie)
+        .json(res)
+}
+
 #[get("/users")]
 pub async fn get_user(hed: HttpRequest) -> HttpResponse {
 
@@ -74,7 +126,6 @@ pub async fn get_user(hed: HttpRequest) -> HttpResponse {
     let results = match session {
         Ok(t) => t,
         Err(s) => {
-            println!("aqui");
             return HttpResponse::new(s)
         }
     };
