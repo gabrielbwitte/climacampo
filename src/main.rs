@@ -13,9 +13,9 @@ use routes::user_routes::{
     logoff,
     created_user,
     get_user,
+    update_access_user,
+    update_profile_user
 };
-
-
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -23,7 +23,7 @@ async fn main() -> std::io::Result<()> {
 
     let addrs: String = match env::var("ADDRS") {
         Ok(v) => v,
-        Err(_) => format!("Error: not impossible loade file env")
+        Err(_) => "Error: not impossible loade file env".to_string()
     };
 
     println!("running server...");
@@ -34,6 +34,8 @@ async fn main() -> std::io::Result<()> {
             .service(logoff)
             .service(created_user)
             .service(get_user)
+            .service(update_access_user)
+            .service(update_profile_user)
     })
     .bind((addrs.as_str(), 3000))?
     .run()

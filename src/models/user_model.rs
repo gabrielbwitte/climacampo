@@ -1,21 +1,17 @@
 use mongodb::bson::{oid::ObjectId};
 use serde::{Serialize, Deserialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone,Serialize, Deserialize)]
 pub struct User {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub name: String,
-    pub username: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub username: Option<String>,
     pub email: String,
-    pub password: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
     pub access: Access,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct Access {
-    pub c_d_user: bool,
-    pub get_users: bool,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -30,5 +26,22 @@ pub struct Session {
     pub id: Option<ObjectId>,
     pub user_id: ObjectId,
     pub token: String,
-    pub start_date: i64
+    pub start_date: i64,
+    pub access: Access
+}
+
+#[derive(Debug, Clone,Serialize, Deserialize)]
+pub struct Access {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub profile: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub c_d_user: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub get_users: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub climate: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub c_access: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub mapa: Option<bool>,
 }
