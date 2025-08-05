@@ -194,7 +194,7 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
             || data.access.c_d_user.is_none()
             || data.access.climate.is_none()
             || data.access.get_users.is_none()
-            || data.access.mapa.is_none()
+            || data.access.modules.is_none()
             || data.access.profile.is_none()
     }
 
@@ -231,7 +231,7 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
             get_users: req.access.get_users, 
             climate: req.access.climate, 
             c_access: req.access.c_access, 
-            mapa: req.access.mapa 
+            modules: req.access.modules.clone()
         }
     };
 
@@ -279,7 +279,7 @@ pub async fn update_access_user(req: Json<Access>, hed: HttpRequest, id: web::Pa
         || data.get_users.is_none()
         || data.climate.is_none()
         || data.c_access.is_none()
-        || data.mapa.is_none()
+        || data.modules.is_none()
     }
 
     if not_empty(&req) {
@@ -301,7 +301,7 @@ pub async fn update_access_user(req: Json<Access>, hed: HttpRequest, id: web::Pa
         "get_users": req.get_users,
         "climate": req.climate,
         "c_access": req.c_access,
-        "mapa": req.mapa
+        "modules": req.modules.clone()
     }}};
 
     let res_db = match user_col().await {

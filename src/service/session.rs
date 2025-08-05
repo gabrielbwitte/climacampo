@@ -70,7 +70,7 @@ pub async fn authentication(password: String, user_db: Option<User>) -> Result<(
                         get_users: result.access.get_users, 
                         climate: result.access.climate,
                         c_access: result.access.c_access,
-                        mapa: result.access.mapa
+                        modules: result.access.modules
                     }
                 };
                 match created_session(doc).await {
@@ -132,7 +132,7 @@ pub async fn authorization(headers: HttpRequest) -> Result<(String, Access), Sta
                             get_users: s.access.get_users,
                             climate: s.access.climate,
                             c_access: s.access.c_access,
-                            mapa: s.access.mapa
+                            modules: s.access.modules.clone()
                         };
                         let renew_s = renew_session(s).await;
                         match renew_s {
