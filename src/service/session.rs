@@ -28,34 +28,14 @@ pub async fn created_hash(password: String) -> Result<String, StatusCode> {
 async fn created_session(doc_session: Session) -> Result<String, StatusCode> {
 
     let db = session().await;
-    let filter = doc! { "user_id": &doc_session.user_id };
-    let result_db_e = db.find_one(filter.clone()).await;
-    let result_db = match result_db_e {
-        Ok(v) => v,
-        Err(_) => return Err(StatusCode::INTERNAL_SERVER_ERROR)
-    };
 
     let token = doc_session.token.clone();
-    match result_db {
-        Some(_) => {
-            let update_d = doc! { "$set": doc! {
-                "token": &token,
-                "start_date": doc_session.start_date
-            } };
-            let update_s = db.update_one(filter, update_d).await;
-            match update_s {
-                Ok(_) => Ok(token),
-                Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
-            }
-        },
-        None => {
-            let insert_s = db.insert_one(doc_session).await;
+    
+    let insert_s = db.insert_one(doc_session).await;
             match insert_s {
                 Ok(_) => Ok(token),
                 Err(_) => Err(StatusCode::INTERNAL_SERVER_ERROR),
             }
-        }
-    }
 }
 
 pub async fn authentication(password: String, user_db: Option<User>) -> Result<(String, ObjectId), StatusCode> {
