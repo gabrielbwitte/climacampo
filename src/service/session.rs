@@ -87,7 +87,7 @@ pub async fn authentication(password: String, user_db: Option<User>) -> Result<(
 
 async fn renew_session(doc_session: Session) -> Result<String, StatusCode> {
     let db = session().await;
-    let filter = doc! { "user_id": doc_session.user_id };
+    let filter = doc! { "_id": doc_session.id };
 
     let new_token = Uuid::new_v4().to_string();
     let new_start_date = Utc::now().timestamp_millis();
