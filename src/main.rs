@@ -18,10 +18,22 @@ use routes::user_routes::{
     update_profile_user
 };
 
-use routes::config_fields_routes::{
+use routes::producer_routes::{
     created_producer,
     get_producer,
     update_producer
+};
+
+use routes::farms_routes::{
+    created_farm,
+    get_farms,
+    update_farm
+};
+
+use routes::fields_routes::{
+    created_field,
+    get_fields,
+    update_field
 };
 
 #[actix_web::main]
@@ -47,6 +59,12 @@ async fn main() -> std::io::Result<()> {
             .service(created_producer)
             .service(get_producer)
             .service(update_producer)
+            .service(created_farm)
+            .service(get_farms)
+            .service(update_farm)
+            .service(created_field)
+            .service(get_fields)
+            .service(update_field)
     })
     .bind((addrs.as_str(), 3000))?
     .run()

@@ -12,16 +12,7 @@ pub struct Producer {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Farm {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<ObjectId>,
-    pub name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub blocks: Option<Vec<ObjectId>>
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Block {
+pub struct Farms {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     pub id: Option<ObjectId>,
     pub name: String,

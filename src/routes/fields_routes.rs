@@ -1,13 +1,13 @@
 use actix_web::{cookie::Cookie, get, patch, post, web::{self, Json}, HttpRequest, HttpResponse};
 
-use crate::{database::mongo_db::producer_col, models::config_fields_model::Producer, service::session::authorization};
+use crate::{database::mongo_db::{field_col}, models::property_model::Fields, service::session::authorization};
 
 use mongodb::bson::{doc, oid::ObjectId};
 use futures::TryStreamExt;
 
 
-#[post("/producer")]
-pub async fn created_producer(hed: HttpRequest, req: Json<Producer>) -> HttpResponse {
+#[post("/field")]
+pub async fn created_field(hed: HttpRequest, req: Json<Fields>) -> HttpResponse {
     let results = match authorization(hed).await {
         Ok(t) => t,
         Err(s) => return HttpResponse::new(s)
@@ -18,7 +18,7 @@ pub async fn created_producer(hed: HttpRequest, req: Json<Producer>) -> HttpResp
         .http_only(true)
         .finish();
 
-    fn not_empty(data: &Json<Producer>) -> bool {
+    fn not_empty(data: &Json<Fields>) -> bool {
         data.name.is_empty()
     }
 
@@ -32,20 +32,19 @@ pub async fn created_producer(hed: HttpRequest, req: Json<Producer>) -> HttpResp
         }
     }
 
-    let data = Producer {
+    let data = Fields {
         id: None,
-        name: req.name.to_owned(),
-        farms: None
+        name: req.name.to_owned()
     };
 
-    match producer_col().await.insert_one(data).await {
+    match field_col().await.insert_one(data).await {
         Ok(result) => HttpResponse::Ok().cookie(cookie).json(result),
         Err(_) => HttpResponse::InternalServerError().body("")
     }
 }
 
-#[get("/producer")]
-pub async fn get_producer(hed: HttpRequest) -> HttpResponse {
+#[get("/fields")]
+pub async fn get_fields(hed: HttpRequest) -> HttpResponse {
     let results = match authorization(hed).await {
         Ok(t) => t,
         Err(s) => {
@@ -64,14 +63,14 @@ pub async fn get_producer(hed: HttpRequest) -> HttpResponse {
         }
     }
     
-    let res_db = producer_col().await;
+    let res_db = field_col().await;
 
     let mut cursor = res_db
     .find(doc! {})
     .await
     .expect("Error");
 
-    let mut producer: Vec<Producer> = Vec::new();
+    let mut producer: Vec<Fields> = Vec::new();
 
     while let Ok(Some(doc)) = cursor.try_next().await {
         producer.push(doc);
@@ -82,8 +81,8 @@ pub async fn get_producer(hed: HttpRequest) -> HttpResponse {
         .json(producer)
 }
 
-#[patch("/producer/{id}")]
-pub async fn update_producer(req: Json<Producer>, hed: HttpRequest, id: web::Path<String>) -> HttpResponse {
+#[patch("/field/{id}")]
+pub async fn update_field(req: Json<Fields>, hed: HttpRequest, id: web::Path<String>) -> HttpResponse {
     let results = match authorization(hed).await {
         Ok(t) => t,
         Err(s) => return HttpResponse::new(s)
@@ -94,9 +93,8 @@ pub async fn update_producer(req: Json<Producer>, hed: HttpRequest, id: web::Pat
         .http_only(true)
         .finish();
 
-    fn not_empty(data: &Json<Producer>) -> bool {
+    fn not_empty(data: &Json<Fields>) -> bool {
         data.name.is_empty()
-        || data.farms.is_none()
     }
 
     if not_empty(&req) {
@@ -113,11 +111,10 @@ pub async fn update_producer(req: Json<Producer>, hed: HttpRequest, id: web::Pat
 
     let filter = doc! { "_id":  obj_id};
     let update = doc! { "$set": doc! { 
-        "name": req.name.clone(),
-        "farms": req.farms.clone()
+        "name": req.name.clone()
     }};
 
-    let res_db = producer_col().await;
+    let res_db = field_col().await;
 
     let res = res_db.update_one(filter, update).await;
 
