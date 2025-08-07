@@ -39,15 +39,11 @@ pub struct Session {
 #[derive(Debug, Clone,Serialize, Deserialize)]
 pub struct Access {
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub profile: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub c_d_user: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub get_users: Option<bool>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub climate: Option<bool>,
+    pub c_user: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub c_access: Option<bool>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub c_producer: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub modules: Option<Vec<String>>,
 }

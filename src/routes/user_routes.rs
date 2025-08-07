@@ -4,7 +4,7 @@ use actix_web::{get, post, delete, patch, web::Json, HttpResponse};
 use futures::TryStreamExt;
 use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
-use crate::database::mongo_db::{session, user_col};
+use crate::database::mongo_db::{session_col, user_col};
 use crate::models::user_model::{Access, Login, User};
 use crate::service::session::{created_hash, authentication, authorization};
 use crate::database::error_db::{erro_db};
@@ -57,7 +57,7 @@ pub async fn logoff(hed: HttpRequest) -> HttpResponse {
 
     let doc = doc! { "token": token };
 
-    let res_db = session().await;
+    let res_db = session_col().await;
     let res = res_db.delete_one(doc).await;
 
     match res {
@@ -68,16 +68,12 @@ pub async fn logoff(hed: HttpRequest) -> HttpResponse {
 
 #[get("/user/profile/{id}")]
 pub async fn get_user_profile(hed: HttpRequest, id: web::Path<String>) -> HttpResponse {
-
-    let session = authorization(hed).await;
-
-    let results = match session {
+    let results = match authorization(hed).await {
         Ok(t) => t,
         Err(s) => {
             return HttpResponse::new(s)
         }
     };
-
     let cookie = Cookie::build("token", results.0)
         .path("/")
         .secure(false)
@@ -89,7 +85,7 @@ pub async fn get_user_profile(hed: HttpRequest, id: web::Path<String>) -> HttpRe
         Err(s) => return HttpResponse::new(s)
     };
     
-    if let Some(v) = results.1.get_users {
+    if let Some(v) = results.1.c_user {
         if !v {
             return HttpResponse::MethodNotAllowed().cookie(cookie).body("Não permitido")
         }
@@ -120,16 +116,12 @@ pub async fn get_user_profile(hed: HttpRequest, id: web::Path<String>) -> HttpRe
 
 #[get("/users")]
 pub async fn get_user(hed: HttpRequest) -> HttpResponse {
-
-    let session = authorization(hed).await;
-
-    let results = match session {
+    let results = match authorization(hed).await {
         Ok(t) => t,
         Err(s) => {
             return HttpResponse::new(s)
         }
     };
-
     let cookie = Cookie::build("token", results.0)
         .path("/")
         .secure(false)
@@ -141,7 +133,7 @@ pub async fn get_user(hed: HttpRequest) -> HttpResponse {
         Err(s) => return HttpResponse::new(s)
     };
     
-    if let Some(v) = results.1.get_users {
+    if let Some(v) = results.1.c_user {
         if !v {
             return HttpResponse::MethodNotAllowed().cookie(cookie).body("Não permitido")
         }
@@ -171,14 +163,10 @@ pub async fn get_user(hed: HttpRequest) -> HttpResponse {
 
 #[post("/user")]
 pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
-    
-    let session = authorization(hed).await;
-
-    let results = match session {
+    let results = match authorization(hed).await {
         Ok(t) => t,
         Err(s) => return HttpResponse::new(s)
     };
-
     let cookie = Cookie::build("token", results.0)
         .path("/")
         .secure(false)
@@ -190,19 +178,17 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
             || data.username.is_none()
             || data.email.is_empty()
             || data.password.is_none()
+            || data.access.c_user.is_none()
             || data.access.c_access.is_none()
-            || data.access.c_d_user.is_none()
-            || data.access.climate.is_none()
-            || data.access.get_users.is_none()
+            || data.access.c_producer.is_none()
             || data.access.modules.is_none()
-            || data.access.profile.is_none()
     }
 
     if not_empty(&req) {
         return HttpResponse::BadRequest().cookie(cookie).body("Campos incoretos");
     }
 
-    if let Some(v) = results.1.c_d_user {
+    if let Some(v) = results.1.c_user {
         if !v {
             return HttpResponse::MethodNotAllowed().cookie(cookie).body("")
         }
@@ -226,11 +212,9 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
         email: req.email.to_owned(),
         password: Some(password_hash),
         access: Access { 
-            profile: req.access.profile, 
-            c_d_user: req.access.c_d_user, 
-            get_users: req.access.get_users, 
-            climate: req.access.climate, 
+            c_user: req.access.c_user,
             c_access: req.access.c_access, 
+            c_producer: req.access.c_producer,
             modules: req.access.modules.clone()
         }
     };
@@ -259,14 +243,10 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
 
 #[patch("/user/access/{id}")]
 pub async fn update_access_user(req: Json<Access>, hed: HttpRequest, id: web::Path<String>) -> HttpResponse {
-    
-    let session = authorization(hed).await;
-
-    let results = match session {
+    let results = match authorization(hed).await {
         Ok(t) => t,
         Err(s) => return HttpResponse::new(s)
     };
-
     let cookie = Cookie::build("token", results.0)
         .path("/")
         .secure(false)
@@ -274,11 +254,9 @@ pub async fn update_access_user(req: Json<Access>, hed: HttpRequest, id: web::Pa
         .finish();
 
     fn not_empty(data: &Json<Access>) -> bool {
-        data.profile.is_none()
-        || data.c_d_user.is_none()
-        || data.get_users.is_none()
-        || data.climate.is_none()
+        data.c_user.is_none()
         || data.c_access.is_none()
+        || data.c_producer.is_none()
         || data.modules.is_none()
     }
 
@@ -296,11 +274,9 @@ pub async fn update_access_user(req: Json<Access>, hed: HttpRequest, id: web::Pa
 
     let filter = doc! { "_id":  obj_id};
     let update = doc! { "$set": doc! { "access": {
-        "profile": req.profile,
-        "c_d_user": req.c_d_user,
-        "get_users": req.get_users,
-        "climate": req.climate,
+        "c_user": req.c_user,
         "c_access": req.c_access,
+        "c_producer": req.c_producer,
         "modules": req.modules.clone()
     }}};
 
@@ -327,14 +303,10 @@ pub async fn update_access_user(req: Json<Access>, hed: HttpRequest, id: web::Pa
 
 #[patch("/user/profile/{id}")]
 pub async fn update_profile_user(req: Json<User>, hed: HttpRequest, id: web::Path<String>) -> HttpResponse {
-    
-    let session = authorization(hed).await;
-
-    let results = match session {
+    let results = match authorization(hed).await {
         Ok(t) => t,
         Err(s) => return HttpResponse::new(s)
     };
-
     let cookie = Cookie::build("token", results.0)
         .path("/")
         .secure(true)
@@ -351,7 +323,7 @@ pub async fn update_profile_user(req: Json<User>, hed: HttpRequest, id: web::Pat
         return HttpResponse::BadRequest().body("Requisição mal formatada.");
     }
 
-    if let Some(v) = results.1.profile {
+    if let Some(v) = results.1.c_user {
         if !v {
             return HttpResponse::MethodNotAllowed().cookie(cookie).body("")
         }

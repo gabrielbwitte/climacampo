@@ -6,6 +6,7 @@ use mongodb::{Client, Collection, Database, IndexModel};
 use mongodb::bson::doc;
 use std::env;
 
+use crate::models::config_fields_model::Producer;
 use crate::models::user_model::{Session, User};
 
 
@@ -45,8 +46,14 @@ pub async fn user_col() -> Result<Collection<User>, StatusCode> {
     
 }
 
-pub async fn session() -> Collection<Session> {
+pub async fn session_col() -> Collection<Session> {
     let db = db_connection().await;
     let user_session: Collection<Session> = db.collection("Session");
     user_session
+}
+
+pub async fn producer_col() -> Collection<Producer> {
+    let db = db_connection().await;
+    let producer: Collection<Producer> = db.collection("Producer");
+    producer
 }

@@ -18,6 +18,12 @@ use routes::user_routes::{
     update_profile_user
 };
 
+use routes::config_fields_routes::{
+    created_producer,
+    get_producer,
+    update_producer
+};
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     dotenv().ok();
@@ -38,6 +44,9 @@ async fn main() -> std::io::Result<()> {
             .service(get_user)
             .service(update_access_user)
             .service(update_profile_user)
+            .service(created_producer)
+            .service(get_producer)
+            .service(update_producer)
     })
     .bind((addrs.as_str(), 3000))?
     .run()

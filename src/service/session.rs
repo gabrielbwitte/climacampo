@@ -8,8 +8,7 @@ use mongodb::bson::oid::ObjectId;
 use mongodb::bson::{doc};
 
 use uuid::Uuid;
-
-use crate::database::mongo_db::session;
+use crate::database::mongo_db::session_col;
 use crate::models::user_model::{Access, Session, User};
 
 const EXPIRATION_IN_MILLISECONDS: i64 = 1296000000;
@@ -27,7 +26,7 @@ pub async fn created_hash(password: String) -> Result<String, StatusCode> {
 
 async fn created_session(doc_session: Session) -> Result<String, StatusCode> {
 
-    let db = session().await;
+    let db = session_col().await;
 
     let token = doc_session.token.clone();
     
@@ -65,11 +64,9 @@ pub async fn authentication(password: String, user_db: Option<User>) -> Result<(
                     token: Uuid::new_v4().to_string(),
                     start_date: Utc::now().timestamp_millis(),
                     access: Access { 
-                        profile: result.access.profile,
-                        c_d_user: result.access.c_d_user, 
-                        get_users: result.access.get_users, 
-                        climate: result.access.climate,
+                        c_user: result.access.c_user,
                         c_access: result.access.c_access,
+                        c_producer: result.access.c_producer,
                         modules: result.access.modules
                     }
                 };
@@ -86,7 +83,7 @@ pub async fn authentication(password: String, user_db: Option<User>) -> Result<(
 }
 
 async fn renew_session(doc_session: Session) -> Result<String, StatusCode> {
-    let db = session().await;
+    let db = session_col().await;
     let filter = doc! { "_id": doc_session.id };
 
     let new_token = Uuid::new_v4().to_string();
@@ -117,7 +114,7 @@ pub async fn authorization(headers: HttpRequest) -> Result<(String, Access), Sta
 
     let doc = doc! { "token": token };
 
-    let res_db = session().await;
+    let res_db = session_col().await;
     let res = res_db.find_one(doc).await;
     
     match res {
@@ -127,11 +124,9 @@ pub async fn authorization(headers: HttpRequest) -> Result<(String, Access), Sta
                     let time_current: i64 = Utc::now().timestamp_millis() - s.start_date;
                     if time_current < EXPIRATION_IN_MILLISECONDS {
                         let access = Access {
-                            profile: s.access.profile,
-                            c_d_user: s.access.c_d_user,
-                            get_users: s.access.get_users,
-                            climate: s.access.climate,
+                            c_user: s.access.c_user,
                             c_access: s.access.c_access,
+                            c_producer: s.access.c_producer,
                             modules: s.access.modules.clone()
                         };
                         let renew_s = renew_session(s).await;
