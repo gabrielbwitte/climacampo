@@ -35,7 +35,7 @@ pub async fn created_farm(hed: HttpRequest, req: Json<Farms>) -> HttpResponse {
     let data = Farms {
         id: None,
         name: req.name.to_owned(),
-        fields: req.fields.clone()
+        fields: req.fields.clone(),
     };
 
     match farm_col().await.insert_one(data).await {

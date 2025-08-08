@@ -35,6 +35,7 @@ pub async fn created_producer(hed: HttpRequest, req: Json<Producer>) -> HttpResp
     let data = Producer {
         id: None,
         name: req.name.to_owned(),
+        users: None,
         farms: None
     };
 
@@ -152,6 +153,7 @@ pub async fn update_producer(req: Json<Producer>, hed: HttpRequest, id: web::Pat
     let filter = doc! { "_id":  obj_id};
     let update = doc! { "$set": doc! { 
         "name": req.name.clone(),
+        "users": req.users.clone(),
         "farms": req.farms.clone()
     }};
 

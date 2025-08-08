@@ -37,16 +37,7 @@ pub struct Session {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ProducerName {
-    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-    pub id: Option<ObjectId>,
-    pub name: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Access {
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub producers: Option<Vec<ObjectId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub c_user: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]

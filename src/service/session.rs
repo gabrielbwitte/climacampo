@@ -64,7 +64,6 @@ pub async fn authentication(password: String, user_db: Option<User>) -> Result<(
                     token: Uuid::new_v4().to_string(),
                     start_date: Utc::now().timestamp_millis(),
                     access: Access {
-                        producers: result.access.producers,
                         c_user: result.access.c_user,
                         c_access: result.access.c_access,
                         c_producer: result.access.c_producer,
@@ -125,7 +124,6 @@ pub async fn authorization(headers: HttpRequest) -> Result<(String, Access), Sta
                     let time_current: i64 = Utc::now().timestamp_millis() - s.start_date;
                     if time_current < EXPIRATION_IN_MILLISECONDS {
                         let access = Access {
-                            producers: s.access.producers.clone(),
                             c_user: s.access.c_user,
                             c_access: s.access.c_access,
                             c_producer: s.access.c_producer,

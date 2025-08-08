@@ -8,6 +8,8 @@ pub struct Producer {
     pub id: Option<ObjectId>,
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub users: Option<Vec<ObjectId>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub farms: Option<Vec<ObjectId>>
 }
 

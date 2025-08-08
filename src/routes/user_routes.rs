@@ -4,7 +4,9 @@ use actix_web::{get, post, delete, patch, web::Json, HttpResponse};
 use futures::TryStreamExt;
 use mongodb::bson::doc;
 use mongodb::bson::oid::ObjectId;
-use crate::database::mongo_db::{session_col, user_col};
+use serde::{Deserialize, Serialize};
+use crate::database::mongo_db::{producer_col, session_col, user_col};
+use crate::models::property_model::Producer;
 use crate::models::user_model::{Access, Login, User};
 use crate::service::session::{created_hash, authentication, authorization};
 use crate::database::error_db::{erro_db};
@@ -108,9 +110,39 @@ pub async fn get_user_profile(hed: HttpRequest, id: web::Path<String>) -> HttpRe
     .await
     .expect("Error");
 
+    #[derive(Debug, Serialize, Deserialize)]
+    struct Res {
+        user: User,
+        producer: Vec<Producer>
+    }
+
+    let filter_producer = doc! {
+        "users": obj_id
+    };
+    let projection_producer = doc! {
+    "users": false,
+    "farms": false
+    };
+    let mut cursor_producer = producer_col()
+        .await
+        .find(filter_producer)
+        .projection(projection_producer)
+        .await
+        .expect("Error");
+
+    let mut producers: Vec<Producer> = Vec::new();
+
+    while let Ok(Some(doc)) = cursor_producer.try_next().await {
+        producers.push(doc);
+    }
+
+    let response = Res {
+        user: res.expect(""),
+        producer: producers
+    };
     HttpResponse::Ok()
         .cookie(cookie)
-        .json(res)
+        .json(response)
 }
 
 #[get("/users")]
@@ -211,7 +243,6 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
         email: req.email.to_owned(),
         password: Some(password_hash),
         access: Access { 
-            producers: req.access.producers.clone(),
             c_user: req.access.c_user,
             c_access: req.access.c_access, 
             c_producer: req.access.c_producer,
@@ -254,8 +285,7 @@ pub async fn update_access_user(req: Json<Access>, hed: HttpRequest, id: web::Pa
         .finish();
 
     fn not_empty(data: &Json<Access>) -> bool {
-        data.producers.is_none()
-        || data.c_user.is_none()
+        data.c_user.is_none()
         || data.c_access.is_none()
         || data.c_producer.is_none()
         || data.modules.is_none()
@@ -275,7 +305,6 @@ pub async fn update_access_user(req: Json<Access>, hed: HttpRequest, id: web::Pa
 
     let filter = doc! { "_id":  obj_id};
     let update = doc! { "$set": doc! { "access": {
-        "producers": req.producers.clone(),
         "c_user": req.c_user,
         "c_access": req.c_access,
         "c_producer": req.c_producer,
