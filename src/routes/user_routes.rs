@@ -91,8 +91,7 @@ pub async fn get_user_profile(hed: HttpRequest, id: web::Path<String>) -> HttpRe
         "access": {
             "c_user": false,
             "c_access": false,
-            "c_producer": false,
-            "modules": false,
+            "c_producer": false
         }
     };
 
