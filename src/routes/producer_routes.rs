@@ -82,6 +82,44 @@ pub async fn get_all_producer(hed: HttpRequest) -> HttpResponse {
         .json(producer)
 }
 
+#[get("/producer/{id}")]
+pub async fn get_producer(hed: HttpRequest, id: web::Path<String>) -> HttpResponse {
+    let results = match authorization(hed).await {
+        Ok(t) => t,
+        Err(s) => {
+            return HttpResponse::new(s)
+        }
+    };
+    let cookie = Cookie::build("token", results.0)
+        .path("/")
+        .secure(false)
+        .http_only(true)
+        .finish();
+
+    let res_db = producer_col().await;
+    
+    let projection = doc! {
+        "farms": false
+    };
+
+    let obj_id =  match ObjectId::parse_str(id.into_inner()) {
+        Ok(v) => v,
+        Err(_) => return HttpResponse::BadRequest().cookie(cookie).body("")
+    };
+    
+    let filter = doc! { "_id":  obj_id};
+
+    let res = res_db
+    .find_one(filter)
+    .projection(projection)
+    .await
+    .expect("Error");
+
+    HttpResponse::Ok()
+        .cookie(cookie)
+        .json(res)
+}
+
 #[patch("/producer/{id}")]
 pub async fn update_producer(req: Json<Producer>, hed: HttpRequest, id: web::Path<String>) -> HttpResponse {
     let results = match authorization(hed).await {

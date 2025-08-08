@@ -21,6 +21,7 @@ use routes::user_routes::{
 use routes::producer_routes::{
     created_producer,
     get_all_producer,
+    get_producer,
     update_producer
 };
 
@@ -58,6 +59,7 @@ async fn main() -> std::io::Result<()> {
             .service(update_profile_user)
             .service(created_producer)
             .service(get_all_producer)
+            .service(get_producer)
             .service(update_producer)
             .service(created_farm)
             .service(get_farms)
