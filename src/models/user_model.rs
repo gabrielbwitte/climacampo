@@ -36,8 +36,10 @@ pub struct Session {
     pub access: Access
 }
 
-#[derive(Debug, Clone,Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Access {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub producers: Option<Vec<ObjectId>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub c_user: Option<bool>,
     #[serde(skip_serializing_if = "Option::is_none")]

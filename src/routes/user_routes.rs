@@ -85,15 +85,15 @@ pub async fn get_user_profile(hed: HttpRequest, id: web::Path<String>) -> HttpRe
         Err(s) => return HttpResponse::new(s)
     };
     
-    if let Some(v) = results.1.c_user {
-        if !v {
-            return HttpResponse::MethodNotAllowed().cookie(cookie).body("Não permitido")
-        }
-    }
-
     let projection = doc! {
         "username": false,
-        "password": false
+        "password": false,
+        "access": {
+            "c_user": false,
+            "c_access": false,
+            "c_producer": false,
+            "modules": false,
+        }
     };
 
     let obj_id =  match ObjectId::parse_str(id.into_inner()) {
@@ -115,7 +115,7 @@ pub async fn get_user_profile(hed: HttpRequest, id: web::Path<String>) -> HttpRe
 }
 
 #[get("/users")]
-pub async fn get_user(hed: HttpRequest) -> HttpResponse {
+pub async fn get_all_users(hed: HttpRequest) -> HttpResponse {
     let results = match authorization(hed).await {
         Ok(t) => t,
         Err(s) => {
@@ -212,6 +212,7 @@ pub async fn created_user(hed: HttpRequest, req: Json<User>) -> HttpResponse {
         email: req.email.to_owned(),
         password: Some(password_hash),
         access: Access { 
+            producers: req.access.producers.clone(),
             c_user: req.access.c_user,
             c_access: req.access.c_access, 
             c_producer: req.access.c_producer,
@@ -254,7 +255,8 @@ pub async fn update_access_user(req: Json<Access>, hed: HttpRequest, id: web::Pa
         .finish();
 
     fn not_empty(data: &Json<Access>) -> bool {
-        data.c_user.is_none()
+        data.producers.is_none()
+        || data.c_user.is_none()
         || data.c_access.is_none()
         || data.c_producer.is_none()
         || data.modules.is_none()
@@ -274,6 +276,7 @@ pub async fn update_access_user(req: Json<Access>, hed: HttpRequest, id: web::Pa
 
     let filter = doc! { "_id":  obj_id};
     let update = doc! { "$set": doc! { "access": {
+        "producers": req.producers.clone(),
         "c_user": req.c_user,
         "c_access": req.c_access,
         "c_producer": req.c_producer,

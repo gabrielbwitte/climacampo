@@ -13,14 +13,14 @@ use routes::user_routes::{
     logoff,
     get_user_profile,
     created_user,
-    get_user,
+    get_all_users,
     update_access_user,
     update_profile_user
 };
 
 use routes::producer_routes::{
     created_producer,
-    get_producer,
+    get_all_producer,
     update_producer
 };
 
@@ -53,11 +53,11 @@ async fn main() -> std::io::Result<()> {
             .service(logoff)
             .service(get_user_profile)
             .service(created_user)
-            .service(get_user)
+            .service(get_all_users)
             .service(update_access_user)
             .service(update_profile_user)
             .service(created_producer)
-            .service(get_producer)
+            .service(get_all_producer)
             .service(update_producer)
             .service(created_farm)
             .service(get_farms)

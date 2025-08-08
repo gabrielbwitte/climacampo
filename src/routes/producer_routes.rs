@@ -44,8 +44,8 @@ pub async fn created_producer(hed: HttpRequest, req: Json<Producer>) -> HttpResp
     }
 }
 
-#[get("/producer")]
-pub async fn get_producer(hed: HttpRequest) -> HttpResponse {
+#[get("/producers")]
+pub async fn get_all_producer(hed: HttpRequest) -> HttpResponse {
     let results = match authorization(hed).await {
         Ok(t) => t,
         Err(s) => {
@@ -58,7 +58,7 @@ pub async fn get_producer(hed: HttpRequest) -> HttpResponse {
         .http_only(true)
         .finish();
 
-    if let Some(v) = results.1.c_user {
+    if let Some(v) = results.1.c_producer {
         if !v {
             return HttpResponse::MethodNotAllowed().cookie(cookie).body("Não permitido")
         }
